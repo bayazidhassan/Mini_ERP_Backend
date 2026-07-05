@@ -1,20 +1,65 @@
 import { ErrorRequestHandler } from 'express';
+import * as z from 'zod';
 import AppError from '../errors/AppError';
+import { TErrorSource } from '../errors/errorInterface';
+import { handleMongooseCastError } from '../errors/handleMongooseCastError';
+import { handleMongooseDuplicateError } from '../errors/handleMongooseDuplicateError';
+import { handleMongooseValidationError } from '../errors/handleMongooseValidationError';
+import { handleZodError } from '../errors/handleZodError';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   let statusCode: number = 500;
   let message: string = 'Something went wrong!';
+  let errorSource: TErrorSource[] = [
+    {
+      path: '',
+      message: 'Something went wrong!',
+    },
+  ];
 
-  if (err instanceof AppError) {
+  if (err instanceof z.ZodError) {
+    const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'ValidationError') {
+    const simplifiedError = handleMongooseValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleMongooseCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleMongooseDuplicateError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err instanceof AppError) {
     statusCode = err?.statusCode;
     message = err?.message;
+    errorSource = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
   } else if (err instanceof Error) {
     message = err?.message;
+    errorSource = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
   }
 
   return res.status(statusCode).json({
     success: false,
     message,
+    errorSource,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 };
