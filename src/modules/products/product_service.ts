@@ -20,6 +20,51 @@ const createProduct = async (payload: TProduct, buffer?: Buffer) => {
   return product;
 };
 
+const getProducts = async (query: Record<string, unknown>) => {
+  const search = (query.search as string) || '';
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const filter = search
+    ? {
+        $or: [
+          {
+            name: {
+              $regex: search,
+              $options: 'i',
+            },
+          },
+          {
+            sku: {
+              $regex: search,
+              $options: 'i',
+            },
+          },
+        ],
+      }
+    : {};
+
+  const products = await Product.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await Product.countDocuments(filter);
+
+  return {
+    products,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
 export const productService = {
   createProduct,
+  getProducts,
 };

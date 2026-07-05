@@ -7,11 +7,13 @@ import { productController } from './product_controller';
 const router = Router();
 
 router.post(
-  '/createProduct',
+  '/',
   authenticate,
   authorize('admin', 'manager'),
   upload.single('image'),
   productController.createProduct,
 );
+
+router.get('/', authenticate, productController.getProducts);
 
 export const productRoutes = router;
