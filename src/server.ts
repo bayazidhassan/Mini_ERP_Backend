@@ -3,10 +3,13 @@ dotenv.config();
 
 import app from './app';
 import connectDB from './config/db';
+import { seedAdmin } from './config/seedAdmin';
 
 const startServer = async () => {
   try {
     await connectDB();
+
+    await seedAdmin();
 
     app.listen(process.env.PORT, () => {
       console.log(`Mini ERP is listening on port ${process.env.PORT}`);
