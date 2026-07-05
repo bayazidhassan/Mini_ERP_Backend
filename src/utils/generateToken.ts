@@ -9,6 +9,6 @@ type TTokenPayload = {
 
 export const createAccessToken = (payload: TTokenPayload) => {
   return jwt.sign(payload, process.env.ACCESS_TOKEN!, {
-    expiresIn: '15m',
+    expiresIn: '7d',
   });
 };
