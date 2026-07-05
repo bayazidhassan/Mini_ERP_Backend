@@ -98,7 +98,7 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
     await session.abortTransaction();
     throw err;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 };
 
