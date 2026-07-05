@@ -11,17 +11,16 @@ const createCustomer = async (payload: TCustomer) => {
 };
 
 const getCustomers = async (query: Record<string, unknown>) => {
-  const queryBuilder = new QueryBuilder(Customer.find(), query)
+  const customerQuery = new QueryBuilder(Customer.find(), query)
     .search(['name', 'email', 'phone'])
     .filter()
     .sort()
     .fields()
-    .paginate()
-    .build();
+    .paginate();
 
   const [customers, meta] = await Promise.all([
-    queryBuilder.modelQuery,
-    queryBuilder.countTotal(),
+    customerQuery.modelQuery,
+    customerQuery.countTotal(),
   ]);
 
   return {

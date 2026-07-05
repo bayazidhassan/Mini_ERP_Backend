@@ -22,17 +22,16 @@ const createProduct = async (payload: TProduct, buffer?: Buffer) => {
 };
 
 const getProducts = async (query: Record<string, unknown>) => {
-  const queryBuilder = new QueryBuilder(Product.find(), query)
+  const productQuery = new QueryBuilder(Product.find(), query)
     .search(['name', 'sku'])
     .filter()
     .sort()
     .fields()
-    .paginate()
-    .build();
+    .paginate();
 
   const [products, meta] = await Promise.all([
-    queryBuilder.modelQuery,
-    queryBuilder.countTotal(),
+    productQuery.modelQuery,
+    productQuery.countTotal(),
   ]);
 
   return {
