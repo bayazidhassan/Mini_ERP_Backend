@@ -24,4 +24,11 @@ router.patch(
   productController.updateProduct,
 );
 
+router.delete(
+  '/:id',
+  authenticate,
+  authorize('admin', 'manager'),
+  productController.deleteProduct,
+);
+
 export const productRoutes = router;
