@@ -11,7 +11,9 @@ const startServer = async () => {
 
     await seedAdmin();
 
-    app.listen(process.env.PORT, () => {
+    const port = process.env.PORT || 5000;
+
+    app.listen(port, () => {
       console.log(`Mini ERP is listening on port ${process.env.PORT}`);
     });
   } catch (error) {
