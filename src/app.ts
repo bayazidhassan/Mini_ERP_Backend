@@ -1,4 +1,5 @@
 import express from 'express';
+import globalErrorHandler from './middlewares/globalErrorHandler';
 import router from './routes';
 const app = express();
 
@@ -9,5 +10,7 @@ app.use('/api/v1', router);
 app.get('/', (req, res) => {
   res.send('Hello Mini ERP!');
 });
+
+app.use(globalErrorHandler);
 
 export default app;
