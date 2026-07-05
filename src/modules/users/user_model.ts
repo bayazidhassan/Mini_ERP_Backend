@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { model, Schema } from 'mongoose';
 import { TRole, TUser } from './user_interface';
 
@@ -35,5 +36,16 @@ const userSchema = new Schema<TUser>(
     timestamps: true,
   },
 );
+
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const hashed = await bcrypt.hash(
+    this.password,
+    Number(process.env.BCRYPT_SALT),
+  );
+  this.password = hashed;
+});
 
 export const User = model<TUser>('User', userSchema);
