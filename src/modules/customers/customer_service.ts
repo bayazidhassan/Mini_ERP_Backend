@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { TCustomer } from './customer_interface';
 import { Customer } from './customer_model';
@@ -10,50 +11,22 @@ const createCustomer = async (payload: TCustomer) => {
 };
 
 const getCustomers = async (query: Record<string, unknown>) => {
-  const search = (query.search as string) || '';
-  const page = Number(query.page) || 1;
-  const limit = Number(query.limit) || 10;
+  const queryBuilder = new QueryBuilder(Customer.find(), query)
+    .search(['name', 'email', 'phone'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate()
+    .build();
 
-  const skip = (page - 1) * limit;
-
-  const filter = search
-    ? {
-        $or: [
-          {
-            name: {
-              $regex: search,
-              $options: 'i',
-            },
-          },
-          {
-            phone: {
-              $regex: search,
-              $options: 'i',
-            },
-          },
-          {
-            email: {
-              $regex: search,
-              $options: 'i',
-            },
-          },
-        ],
-      }
-    : {};
-
-  const [customers, total] = await Promise.all([
-    Customer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-    Customer.countDocuments(filter),
+  const [customers, meta] = await Promise.all([
+    queryBuilder.modelQuery,
+    queryBuilder.countTotal(),
   ]);
 
   return {
     customers,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
+    meta,
   };
 };
 

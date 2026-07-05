@@ -1,3 +1,4 @@
+import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import uploadImageToCloudinary from '../../utils/uploadImageToCloudinary';
 import { TProduct } from './product_interface';
@@ -21,46 +22,22 @@ const createProduct = async (payload: TProduct, buffer?: Buffer) => {
 };
 
 const getProducts = async (query: Record<string, unknown>) => {
-  const search = (query.search as string) || '';
-  const page = Number(query.page) || 1;
-  const limit = Number(query.limit) || 10;
+  const queryBuilder = new QueryBuilder(Product.find(), query)
+    .search(['name', 'sku'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate()
+    .build();
 
-  const skip = (page - 1) * limit;
-
-  const filter = search
-    ? {
-        $or: [
-          {
-            name: {
-              $regex: search,
-              $options: 'i',
-            },
-          },
-          {
-            sku: {
-              $regex: search,
-              $options: 'i',
-            },
-          },
-        ],
-      }
-    : {};
-
-  const products = await Product.find(filter)
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 });
-
-  const total = await Product.countDocuments(filter);
+  const [products, meta] = await Promise.all([
+    queryBuilder.modelQuery,
+    queryBuilder.countTotal(),
+  ]);
 
   return {
     products,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
+    meta,
   };
 };
 
