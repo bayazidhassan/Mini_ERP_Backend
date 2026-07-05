@@ -16,4 +16,12 @@ router.post(
 
 router.get('/', authenticate, productController.getProducts);
 
+router.patch(
+  '/:id',
+  authenticate,
+  authorize('admin', 'manager'),
+  upload.single('image'),
+  productController.updateProduct,
+);
+
 export const productRoutes = router;

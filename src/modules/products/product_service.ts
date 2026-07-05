@@ -64,7 +64,36 @@ const getProducts = async (query: Record<string, unknown>) => {
   };
 };
 
+const updateProduct = async (
+  id: string,
+  payload: Partial<TProduct>,
+  buffer?: Buffer,
+) => {
+  const existingProduct = await Product.findById(id);
+
+  if (!existingProduct) {
+    throw new AppError(404, 'Product not found.');
+  }
+
+  if (buffer) {
+    const image = await uploadImageToCloudinary(
+      `${existingProduct.sku}-${Date.now()}`,
+      buffer,
+    );
+
+    payload.image = image;
+  }
+
+  const updatedProduct = await Product.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return updatedProduct;
+};
+
 export const productService = {
   createProduct,
   getProducts,
+  updateProduct,
 };

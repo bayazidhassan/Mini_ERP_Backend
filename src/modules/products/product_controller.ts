@@ -21,7 +21,22 @@ const getProducts = catchAsync(async (req, res) => {
   });
 });
 
+const updateProduct = catchAsync(async (req, res) => {
+  const result = await productService.updateProduct(
+    req.params.id as string,
+    req.body,
+    req.file?.buffer,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'Product updated successfully.',
+    data: result,
+  });
+});
+
 export const productController = {
   createProduct,
   getProducts,
+  updateProduct,
 };
