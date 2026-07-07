@@ -80,6 +80,26 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
     // 4. Apply stock updates in one bulk operation
     await Product.bulkWrite(stockUpdates, { session });
 
+    // 5. Check for low stock after update and prepare notifications
+    const lowStockAlerts: {
+      productId: string;
+      name: string;
+      stockQuantity: number;
+    }[] = [];
+    for (const item of saleProducts) {
+      const product = productMap.get(item.product.toString());
+      if (product) {
+        const newStock = product.stockQuantity - item.quantity;
+        if (newStock < 5) {
+          lowStockAlerts.push({
+            productId: item.product.toString(),
+            name: product.name,
+            stockQuantity: newStock,
+          });
+        }
+      }
+    }
+
     // 6. Create the sale
     const saleData: TSale = {
       products: saleProducts,
@@ -90,6 +110,15 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
     const sale = await Sale.create([saleData], { session });
 
     await session.commitTransaction();
+
+    // 7. Emit low stock alerts AFTER successful commit (only if transaction succeeded)
+    if (lowStockAlerts.length > 0) {
+      const { getIO } = await import('../../socket');
+      const io = getIO();
+      lowStockAlerts.forEach((alert) => {
+        io.emit('lowStock', alert);
+      });
+    }
 
     return sale[0];
   } catch (err) {
