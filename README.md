@@ -11,6 +11,7 @@ Inventory & Sales Management System backend built for the MERN Stack Technical A
 - JWT Authentication
 - Cloudinary (image uploads)
 - Multer
+- Socket.io
 
 ## Features
 
@@ -18,6 +19,8 @@ Inventory & Sales Management System backend built for the MERN Stack Technical A
 - Product CRUD with image upload, search, and pagination
 - Sales creation with automatic stock deduction, insufficient-stock prevention, and grand total calculation (MongoDB transactions)
 - Dashboard statistics API (total products, total sales, low stock products)
+- Admin-only user creation (Manager/Employee accounts)
+- Real-time low stock notifications via Socket.io
 - Generic reusable Query Builder (search, filter, sort, pagination)
 - Global error handler with consistent API response structure
 - Modular feature-based architecture
@@ -69,6 +72,10 @@ Inventory & Sales Management System backend built for the MERN Stack Technical A
 
 The admin user is automatically seeded on server start using `ADMIN_EMAIL` and `ADMIN_PASSWORD` from your `.env` file (only created if it doesn't already exist).
 
+## Real-time Notifications
+
+This backend uses Socket.io to emit real-time low stock alerts whenever a sale reduces a product's stock below 5 units. The frontend Dashboard listens for these events and refreshes automatically.
+
 ## Live API
 
 Base URL: `https://mini-erp-backend-c922.onrender.com/api/v1`
@@ -77,7 +84,8 @@ Base URL: `https://mini-erp-backend-c922.onrender.com/api/v1`
 
 See [API_DOCS.md](./API_DOCS.md) for full endpoint documentation.
 
-## Admin Login Credentials
+## Test Login Credentials
 
-- Email: `bayazidhassan776@gmail.com`
-- Password: `12345678`
+- **Admin:** `bayazidhassan776@gmail.com` / `12345678`
+- **Manager:** `bayazidhassan777@gmail.com` / `12345678`
+- **Employee:** `bayazidhassan778@gmail.com` / `12345678`
