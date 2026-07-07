@@ -26,11 +26,6 @@ const saleProductSchema = new Schema(
 
 const saleSchema = new Schema<TSale>(
   {
-    customer: {
-      type: Schema.Types.ObjectId,
-      ref: 'Customer',
-      required: [true, 'Customer is required.'],
-    },
     products: {
       type: [saleProductSchema],
       required: [true, 'At least one product is required.'],

@@ -1,13 +1,11 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
-import { Customer } from '../customers/customer_model';
 import { Product } from '../products/product_model';
 import { TSale, TSaleProduct } from './sale_interface';
 import { Sale } from './sale_model';
 
 type TCreateSalePayload = {
-  customer: string;
   products: { product: string; quantity: number }[];
 };
 
@@ -17,13 +15,14 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
   try {
     session.startTransaction();
 
-    // 1. Verify customer exists
-    const customer = await Customer.findById(payload.customer).session(session);
-    if (!customer) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Customer not found.');
+    if (!payload.products.length) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'At least one product is required.',
+      );
     }
 
-    // 2. Reject duplicate product IDs
+    // 1. Reject duplicate product IDs
     const productIds = payload.products.map((p) => p.product);
     if (new Set(productIds).size !== productIds.length) {
       throw new AppError(
@@ -32,7 +31,7 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
       );
     }
 
-    // 3. Fetch all products in one query
+    // 2. Fetch all products in one query
     const products = await Product.find({ _id: { $in: productIds } }).session(
       session,
     );
@@ -43,7 +42,7 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
     const saleProducts: TSaleProduct[] = [];
     const stockUpdates: mongoose.AnyBulkWriteOperation[] = [];
 
-    // 4. Validate + calculate + build updates
+    // 3. Validate + calculate + build updates
     for (const item of payload.products) {
       const product = productMap.get(item.product);
 
@@ -78,12 +77,11 @@ const createSale = async (payload: TCreateSalePayload, createdBy: string) => {
       });
     }
 
-    // 5. Apply stock updates in one bulk operation
+    // 4. Apply stock updates in one bulk operation
     await Product.bulkWrite(stockUpdates, { session });
 
     // 6. Create the sale
     const saleData: TSale = {
-      customer: customer._id,
       products: saleProducts,
       grandTotal,
       createdBy: new mongoose.Types.ObjectId(createdBy),

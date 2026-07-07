@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 const createSaleSchema = z
   .object({
-    customer: z.string().trim().min(1, 'Customer is required.'),
-
     products: z
       .array(
         z.object({

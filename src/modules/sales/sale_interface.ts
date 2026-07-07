@@ -7,7 +7,6 @@ export type TSaleProduct = {
 };
 
 export type TSale = {
-  customer: Types.ObjectId;
   products: TSaleProduct[];
   grandTotal: number;
   createdBy: Types.ObjectId;
