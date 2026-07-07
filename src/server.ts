@@ -1,9 +1,16 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import http from 'http';
 import app from './app';
 import connectDB from './config/db';
 import { seedAdmin } from './config/seedAdmin';
+import { initSocket } from './socket';
+
+const PORT = process.env.PORT || 5000;
+
+const httpServer = http.createServer(app);
+initSocket(httpServer);
 
 const startServer = async () => {
   try {
@@ -11,11 +18,9 @@ const startServer = async () => {
 
     await seedAdmin();
 
-    const port = process.env.PORT || 5000;
-
-    app.listen(port, () => {
-      console.log(`Mini ERP is listening on port ${process.env.PORT}`);
-    });
+    httpServer.listen(PORT, () =>
+      console.log(`Mini ERP server running on port ${process.env.PORT}`),
+    );
   } catch (error) {
     console.error('❌ Failed to start server: ', error);
     process.exit(1);
